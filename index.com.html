@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPI Informatika: Elemen Himpunan Data (MTs. Muhammadiyah Isimu)</title>
+    <style>
+        :root {
+            --primary: #FBBF24; /* Kuning Modern */
+            --primary-dark: #D97706;
+            --primary-light: #FEF3C7;
+            --sidebar-bg: #1F2937; /* Dark Gray */
+            --text-main: #374151;
+            --text-light: #6B7280;
+            --bg-body: #F3F4F6;
+            --bg-card: #FFFFFF;
+            --success: #10B981;
+            --danger: #EF4444;
+            --transition: all 0.3s ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* Layout Dashboard */
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100vw;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            width: 280px;
+            background-color: var(--sidebar-bg);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+            z-index: 10;
+            flex-shrink: 0;
+        }
+
+        .sidebar-header {
+            padding: 24px;
+            background-color: #111827;
+            border-bottom: 4px solid var(--primary);
+            text-align: center;
+        }
+
+        .sidebar-header h2 {
+            color: var(--primary);
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.85rem;
+            color: #9CA3AF;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 20px 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 15px 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #D1D5DB;
+            transition: var(--transition);
+            border-left: 4px solid transparent;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .nav-item.active {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            border-left: 4px solid var(--primary);
+            font-weight: 600;
+        }
+
+        /* Main Content Styling */
+        .main-content {
+            flex-grow: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        /* Section Transitions */
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards & Typography */
+        .card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+            border-top: 4px solid var(--primary);
+        }
+
+        h1 { font-size: 1.8rem; color: var(--text-main); margin-bottom: 10px; }
+        h2 { font-size: 1.4rem; color: var(--text-main); margin-bottom: 15px; }
+        h3 { font-size: 1.15rem; margin-bottom: 10px; color: var(--primary-dark); }
+        p { line-height: 1.6; margin-bottom: 15px; }
+        
+        .highlight {
+            background-color: var(--primary-light);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        /* Database Banner Indicator */
+        .db-status-bar {
+            background-color: #E0F2FE;
+            border: 1px solid #0284C7;
+            color: #0369A1;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        /* Table Styling */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
+        }
+
+        .data-table th {
+            background-color: var(--primary);
+            color: #111827;
+            padding: 12px 15px;
+            text-align: left;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .data-table th:hover {
+            background-color: var(--primary-dark);
+            color: white;
+        }
+
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #E5E7EB;
+            transition: var(--transition);
+        }
+
+        .data-table tbody tr:hover td {
+            background-color: #F9FAFB;
+        }
+
+        .highlight-col { background-color: var(--primary-light) !important; }
+        .highlight-row td { background-color: #DBEAFE !important; }
+
+        /* Form Inputs */
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+        }
+
+        .input-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .input-control:focus {
+            outline: none;
+            border-color: var(--primary-dark);
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.2);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #111827;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary-dark);
+        }
+        
+        .btn-outline:hover {
+            background-color: var(--primary-light);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Feedback & Quiz Box */
+        .feedback-box {
+            padding: 15px;
+            border-radius: 8px;
+            background-color: var(--primary-light);
+            border-left: 4px solid var(--primary);
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+            display: none;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: 14px;
+            margin-bottom: 10px;
+            background-color: var(--bg-body);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 0.98rem;
+        }
+
+        .option-btn:hover {
+            background-color: #E5E7EB;
+            border-color: #D1D5DB;
+        }
+
+        .option-btn.correct { background-color: #D1FAE5; border-color: var(--success); color: #065F46; font-weight: 600; }
+        .option-btn.wrong { background-color: #FEE2E2; border-color: var(--danger); color: #991B1B; }
+
+        .quiz-feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .quiz-feedback.success { background-color: #D1FAE5; color: #065F46; border: 1px solid var(--success); }
+        .quiz-feedback.error { background-color: #FEE2E2; color: #991B1B; border: 1px solid var(--danger); }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #E5E7EB;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Config Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        /* Responsive Layout */
+        @media (max-width: 768px) {
+            .dashboard-container { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; flex-direction: row; flex-wrap: wrap; }
+            .sidebar-header { width: 100%; }
+            .nav-menu { display: flex; width: 100%; padding: 0; }
+            .nav-item { flex: 1; justify-content: center; text-align: center; border-left: none; border-bottom: 4px solid transparent; font-size: 0.85rem; padding: 10px; }
+            .nav-item.active { border-bottom: 4px solid var(--primary); border-left: none; }
+            .main-content { padding: 15px; max-height: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>MTs. Muhammadiyah Isimu</h2>
+                <p style="color: var(--primary); font-weight: 600; margin-bottom: 4px;">Asna Ahmad, S.Pd</p>
+                <p>Informatika • Kelas VII (Fase D)</p>
+            </div>
+            <ul class="nav-menu">
+                <li class="nav-item active" onclick="navTo('home', this)">🏠 Beranda</li>
+                <li class="nav-item" onclick="navTo('materi', this)">📚 Materi Inti</li>
+                <li class="nav-item" onclick="navTo('eksplorasi', this)">🔍 Eksplorasi Data</li>
+                <li class="nav-item" onclick="navTo('kuis', this)">📝 Kuis & Evaluasi</li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+
+            <!-- Database Connection Status Indicator -->
+            <div class="db-status-bar">
+                <div>
+                    <strong>🔗 Status Database Google Sheets:</strong> 
+                    <span id="db-status-text">Menggunakan Sinkronisasi Otomatis</span>
+                </div>
+                <button class="btn btn-outline" style="padding: 4px 12px; font-size: 0.8rem;" onclick="openConfigModal()">⚙️ Pengaturan App Script URL</button>
+            </div>
+            
+            <!-- SECTION: BERANDA -->
+            <section id="home" class="section active">
+                <div class="card">
+                    <h1>Selamat Datang, Sobat Madrasah! 👋</h1>
+                    <p style="color: var(--text-light); font-weight: 500; margin-bottom: 20px; border-bottom: 1px solid #E5E7EB; padding-bottom: 15px;">
+                        Pengampu: <strong style="color: var(--primary-dark);">Asna Ahmad, S.Pd</strong> | MTs. Muhammadiyah Isimu
+                    </p>
+                    <p>Selamat datang di Media Pembelajaran Interaktif (MPI) Informatika. Pada modul ini, kita akan mengeksplorasi bagaimana data diolah, disusun, dan dianalisis dalam bentuk <strong>Himpunan Data Terstruktur</strong>.</p>
+                    
+                    <div style="background-color: var(--bg-body); padding: 20px; border-radius: 8px; margin-top: 20px;">
+                        <h3>🎯 Tujuan Pembelajaran:</h3>
+                        <ul>
+                            <li style="margin-bottom: 8px; margin-left: 20px;">Memahami konsep <strong>Himpunan Data (Dataset)</strong>.</li>
+                            <li style="margin-bottom: 8px; margin-left: 20px;">Mengidentifikasi elemen <strong>Baris (Record)</strong> dan <strong>Kolom (Atribut)</strong>.</li>
+                            <li style="margin-bottom: 8px; margin-left: 20px;">Melakukan <strong>pengurutan (sorting)</strong> dan <strong>penyaringan (filtering)</strong> data secara kritis.</li>
+                            <li style="margin-bottom: 8px; margin-left: 20px;">Mengevaluasi hasil pemahaman secara mandiri melalui Kuis Terintegrasi Google Sheets.</li>
+                        </ul>
+                    </div>
+
+                    <p style="margin-top: 20px;">
+                        <em>Konteks Pembelajaran:</em> Kita menggunakan studi kasus nyata yaitu <strong>Data Hasil Panen Jagung Petani di Kabupaten Gorontalo</strong>. 🌽
+                    </p>
+                    
+                    <button class="btn btn-primary" style="margin-top: 15px;" onclick="navToSection('materi')">Mulai Belajar 🚀</button>
+                </div>
+            </section>
+
+            <!-- SECTION: MATERI -->
+            <section id="materi" class="section">
+                <div class="card">
+                    <h2>📚 Konsep Himpunan Data</h2>
+                    <p>Data yang dikumpulkan dari lapangan (seperti jumlah panen jagung) perlu disusun secara sistematis ke dalam bentuk <strong>Tabel Himpunan Data (Dataset)</strong> agar mudah dianalisis oleh komputer.</p>
+                    
+                    <h3>1. Elemen Utama Tabel Data</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                        <div style="flex: 1; min-width: 250px; background: #DBEAFE; padding: 18px; border-radius: 8px; border-left: 4px solid #3B82F6;">
+                            <h4 style="color: #1D4ED8; margin-bottom: 8px;">↔️ Baris (Row / Record)</h4>
+                            <p style="font-size: 0.9rem; margin-bottom: 0;">Membentang secara horizontal. Satu baris mewakili <strong>satu kesatuan entitas data utuh</strong> (misal: seluruh informasi panen milik Pak Budi).</p>
+                        </div>
+                        <div style="flex: 1; min-width: 250px; background: var(--primary-light); padding: 18px; border-radius: 8px; border-left: 4px solid var(--primary-dark);">
+                            <h4 style="color: var(--primary-dark); margin-bottom: 8px;">↕ Kolom (Column / Attribute)</h4>
+                            <p style="font-size: 0.9rem; margin-bottom: 0;">Membentang secara vertikal. Menunjukkan <strong>karakteristik / jenis atribut tertentu</strong> dari seluruh entitas (misal: Kolom Hasil Panen).</p>
+                        </div>
+                    </div>
+
+                    <h3>2. Tipe Data Atribut</h3>
+                    <p>Setiap atribut menyimpan nilai dengan karakteristik tipe data tersendiri:</p>
+                    <ul style="margin-left: 20px; margin-bottom: 20px;">
+                        <li style="margin-bottom: 8px;"><strong>Teks (String):</strong> Kumpulan huruf atau kata. Contoh: Nama "Limboto" atau "Suwawa".</li>
+                        <li style="margin-bottom: 8px;"><strong>Numerik (Angka):</strong> Nilai bilangan yang dapat dihitung atau diurutkan. Contoh: Jumlah Panen "18" Ton.</li>
+                    </ul>
+
+                    <button class="btn btn-primary" onclick="navToSection('eksplorasi')">Lanjut ke Eksplorasi Data ➡️️</button>
+                </div>
+            </section>
+
+            <!-- SECTION: EKSPLORASI INTERAKTIF -->
+            <section id="eksplorasi" class="section">
+                <div class="card">
+                    <h2>🔍 Eksplorasi Data Panen Jagung Gorontalo</h2>
+                    <p>Klik pada <strong>judul kolom (header)</strong> untuk menyorot Atribut, atau klik pada <strong>baris tabel</strong> untuk melihat entitas Record secara langsung.</p>
+                    
+                    <div id="eksplorasi-feedback" class="feedback-box">
+                        Klik tabel di bawah untuk melihat penjelasan interaktif!
+                    </div>
+
+                    <div class="controls">
+                        <button class="btn btn-primary" onclick="sortData('panen', 'desc')">🔽 Urutkan Panen Terbesar (Descending)</button>
+                        <button class="btn btn-primary" onclick="sortData('panen', 'asc')">🔼 Urutkan Panen Terkecil (Ascending)</button>
+                        <button class="btn btn-outline" onclick="filterData('A')">🔎 Filter: Kualitas A</button>
+                        <button class="btn btn-outline" onclick="resetData()">🔄 Reset Tabel</button>
+                    </div>
+
+                    <table class="data-table" id="pertanian-table">
+                        <thead>
+                            <tr>
+                                <th onclick="highlightColumn(0, 'ID Data', 'Atribut angka unik untuk mengidentifikasi setiap rekaman data.')">ID</th>
+                                <th onclick="highlightColumn(1, 'Nama Petani', 'Atribut Teks (String) yang berisi identitas nama petani.')">Nama Petani</th>
+                                <th onclick="highlightColumn(2, 'Kecamatan', 'Atribut Teks (String) yang menunjukkan lokasi wilayah di Gorontalo.')">Kecamatan</th>
+                                <th onclick="highlightColumn(3, 'Panen (Ton)', 'Atribut Numerik (Angka) yang dapat diurutkan dan dihitung nilai matematikanya.')">Panen (Ton)</th>
+                                <th onclick="highlightColumn(4, 'Kualitas', 'Atribut kategori mutu panen.')">Kualitas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body">
+                            <!-- Data dimuat via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION: KUIS & EVALUASI INTEGRASI GOOGLE SHEETS -->
+            <section id="kuis" class="section">
+                <div class="card">
+                    <h2>📝 Kuis Evaluasi Formatif</h2>
+                    <p>Hasil evaluasi akan tersimpan otomatis ke database <strong>Google Sheets Guru (Asna Ahmad, S.Pd)</strong>.</p>
+                    
+                    <!-- Form Identitas Siswa -->
+                    <div id="identity-form" style="background: #F9FAFB; padding: 20px; border-radius: 8px; border: 1px solid #E5E7EB; margin-bottom: 20px;">
+                        <h3 style="margin-bottom: 15px; color: #111827;">👤 Masukkan Identitas Siswa Sebelum Memulai:</h3>
+                        <div class="input-group">
+                            <label for="student-nama">Nama Lengkap Siswa *</label>
+                            <input type="text" id="student-nama" class="input-control" placeholder="Contoh: Mohamad Rayhan" required>
+                        </div>
+                        <div class="input-group">
+                            <label for="student-kelas">Kelas *</label>
+                            <input type="text" id="student-kelas" class="input-control" placeholder="Contoh: VII-A (MTs. Muhammadiyah Isimu)" required>
+                        </div>
+                        <button class="btn btn-primary" onclick="startQuiz()">Mulai Kerjakan Kuis 🚀</button>
+                    </div>
+
+                    <!-- Area Pertanyaan Kuis -->
+                    <div id="quiz-area" style="display: none;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="quiz-progress"></div>
+                        </div>
+
+                        <div id="quiz-container">
+                            <!-- Pertanyaan dimuat via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Hasil Akhir Kuis -->
+                    <div id="quiz-result" class="card" style="display: none; text-align: center; background-color: var(--primary-light);">
+                        <h2>🎉 Evaluasi Selesai!</h2>
+                        <h1 style="font-size: 3.2rem; color: var(--primary-dark); margin: 10px 0;" id="final-score">100</h1>
+                        <p id="score-message" style="font-size: 1.1rem; font-weight: 500;"></p>
+                        
+                        <div id="sync-status-box" style="margin: 15px 0; padding: 12px; border-radius: 6px; background: #FFFFFF; font-size: 0.9rem; border: 1px solid #D97706;">
+                            ⏳ Menyiapkan pengiriman data ke Google Sheets...
+                        </div>
+
+                        <button class="btn btn-primary" onclick="resetQuiz()">Ulangi Kuis 🔄</button>
+                    </div>
+
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modal Pengaturan Apps Script URL -->
+    <div class="modal-overlay" id="config-modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 10px;">⚙️ Pengaturan Web App Google Apps Script</h2>
+            <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 15px;">
+                Masukkan URL Web App hasil Deploy dari Google Apps Script agar hasil kuis siswa tersimpan langsung ke Google Sheets Anda.
+            </p>
+            <div class="input-group">
+                <label for="gas-url-input">Google Apps Script Web App URL:</label>
+                <input type="url" id="gas-url-input" class="input-control" placeholder="https://script.google.com/macros/s/.../exec">
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn btn-outline" onclick="closeConfigModal()">Batal</button>
+                <button class="btn btn-primary" onclick="saveConfigURL()">Simpan URL</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. CONFIGURATION & STATE
+        let DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbz0uMGwiNwzu7dbq9YCdnOykhR7Hs0sDa3-MIL9WZxsVsX4L19PpQ0yfcE8GTEnUW4YNA/exec";
+        
+        function getGasURL() {
+            return localStorage.getItem("gas_app_url") || DEFAULT_GAS_URL;
+        }
+
+        // 2. NAVIGATION LOGIC
+        function navTo(sectionId, element) {
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if(element) element.classList.add('active');
+            
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+
+        function navToSection(sectionId) {
+            const navItems = document.querySelectorAll('.nav-item');
+            let targetNav = navItems[0];
+            if(sectionId === 'materi') targetNav = navItems[1];
+            if(sectionId === 'eksplorasi') targetNav = navItems[2];
+            if(sectionId === 'kuis') targetNav = navItems[3];
+            navTo(sectionId, targetNav);
+        }
+
+        // 3. DATASET MOCK GORONTALO
+        const originalData = [
+            { id: 101, nama: "Pak Hasan", kecamatan: "Limboto", panen: 18, kualitas: "A" },
+            { id: 102, nama: "Ibu Nur", kecamatan: "Suwawa", panen: 12, kualitas: "B" },
+            { id: 103, nama: "Pak Rahmat", kecamatan: "Tibawa", panen: 25, kualitas: "A" },
+            { id: 104, nama: "Pak Ismail", kecamatan: "Kwandang", panen: 9, kualitas: "C" },
+            { id: 105, nama: "Ibu Fitri", kecamatan: "Telaga", panen: 15, kualitas: "A" }
+        ];
+
+        let currentData = [...originalData];
+
+        function renderTable(data) {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = '';
+            
+            data.forEach((row) => {
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                tr.innerHTML = `
+                    <td>${row.id}</td>
+                    <td>${row.nama}</td>
+                    <td>${row.kecamatan}</td>
+                    <td><strong style="color:var(--primary-dark)">${row.panen} Ton</strong></td>
+                    <td><span class="highlight">${row.kualitas}</span></td>
+                `;
+                
+                tr.onclick = function() {
+                    clearHighlights();
+                    tr.classList.add('highlight-row');
+                    showFeedback(`💡 <strong>BARIS (RECORD):</strong> Kamu memilih data panen milik <strong>${row.nama}</strong> (${row.kecamatan}). Baris ini menyimpan entitas lengkap petani tersebut.`);
+                };
+                
+                tbody.appendChild(tr);
+            });
+        }
+
+        function highlightColumn(colIndex, colName, desc) {
+            clearHighlights();
+            const table = document.getElementById('pertanian-table');
+            for(let i=0; i<table.rows.length; i++) {
+                if(table.rows[i].cells[colIndex]) {
+                    table.rows[i].cells[colIndex].classList.add('highlight-col');
+                }
+            }
+            showFeedback(`💡 <strong>KOLOM (ATRIBUT):</strong> Atribut <strong>"${colName}"</strong>. ${desc}`);
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.data-table td, .data-table th').forEach(c => c.classList.remove('highlight-col'));
+            document.querySelectorAll('.data-table tr').forEach(r => r.classList.remove('highlight-row'));
+        }
+
+        function showFeedback(msg) {
+            const fb = document.getElementById('eksplorasi-feedback');
+            fb.style.display = 'block';
+            fb.innerHTML = msg;
+        }
+
+        function sortData(key, direction) {
+            currentData.sort((a, b) => (direction === 'asc') ? a[key] - b[key] : b[key] - a[key]);
+            renderTable(currentData);
+            const label = direction === 'desc' ? 'Terbesar ke Terkecil (Descending)' : 'Terkecil ke Terbesar (Ascending)';
+            showFeedback(`📊 <strong>SORTING:</strong> Data diurutkan berdasarkan Atribut <strong>Panen</strong> secara ${label}.`);
+        }
+
+        function filterData(kualitas) {
+            currentData = originalData.filter(item => item.kualitas === kualitas);
+            renderTable(currentData);
+            showFeedback(`🔎 <strong>FILTERING:</strong> Hanya menampilkan baris dengan Atribut Kualitas = "<strong>${kualitas}</strong>".`);
+        }
+
+        function resetData() {
+            currentData = [...originalData];
+            renderTable(currentData);
+            clearHighlights();
+            showFeedback(`🔄 Tabel telah dikembalikan ke format awal.`);
+        }
+
+        // 4. QUIZ SYSTEM & INTEGRATION
+        const quizQuestions = [
+            {
+                id: 1,
+                q: "1. Dalam sebuah himpunan data tabel, apa yang dimaksud dengan BARIS (Record)?",
+                options: [
+                    "A. Kategori data yang membentang vertikal ke bawah.",
+                    "B. Satu kesatuan entitas data utuh yang membentang horizontal.",
+                    "C. Tipe data berupa teks dan angka.",
+                    "D. Judul tabel di bagian paling atas."
+                ],
+                correct: 1,
+                feedbackText: "Baris (Record) menyimpan satu kesatuan data mendatar secara utuh."
+            },
+            {
+                id: 2,
+                q: "2. Pada tabel 'Data Panen Jagung', elemen yang menunjukkan tulisan 'Kecamatan' di bagian atas tabel disebut sebagai...",
+                options: [
+                    "A. Kolom / Atribut",
+                    "B. Baris / Record",
+                    "C. Tipe Data",
+                    "D. Sel (Cell)"
+                ],
+                correct: 0,
+                feedbackText: "'Kecamatan' adalah sebuah Atribut atau Kolom yang mendeskripsikan lokasi."
+            },
+            {
+                id: 3,
+                q: "3. Jika kamu hanya ingin melihat data panen yang berasal dari kecamatan 'Limboto' saja, tindakan apa yang dilakukan?",
+                options: [
+                    "A. Sorting (Pengurutan) berdasarkan Panen.",
+                    "B. Filtering (Penyaringan) berdasarkan Kecamatan.",
+                    "C. Menghapus semua data.",
+                    "D. Menambahkan baris baru."
+                ],
+                correct: 1,
+                feedbackText: "Filtering digunakan untuk menyaring dan menampilkan data bersyarat tertentu."
+            },
+            {
+                id: 4,
+                q: "4. Manakah di bawah ini yang merupakan contoh Atribut dengan tipe data Numerik (Angka)?",
+                options: [
+                    "A. Nama Petani = 'Pak Hasan'",
+                    "B. Kualitas = 'A'",
+                    "C. Hasil Panen = 25",
+                    "D. Kecamatan = 'Suwawa'"
+                ],
+                correct: 2,
+                feedbackText: "25 adalah bilangan numerik yang dapat dihitung nilainya."
+            },
+            {
+                id: 5,
+                q: "5. Urutan data panen dari nilai terbesar ke terkecil dinamakan...",
+                options: [
+                    "A. Descending Sorting (Pengurutan Menurun)",
+                    "B. Ascending Sorting (Pengurutan Menaik)",
+                    "C. Filtering (Penyaringan)",
+                    "D. Deleting (Penghapusan)"
+                ],
+                correct: 0,
+                feedbackText: "Pengurutan dari nilai terbesar ke terkecil disebut Descending."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let studentAnswers = [];
+        let studentNama = "";
+        let studentKelas = "";
+
+        function startQuiz() {
+            const namaInput = document.getElementById('student-nama').value.trim();
+            const kelasInput = document.getElementById('student-kelas').value.trim();
+
+            if (!namaInput || !kelasInput) {
+                showModalAlert("Mohon lengkapi Nama dan Kelas terlebih dahulu!");
+                return;
+            }
+
+            studentNama = namaInput;
+            studentKelas = kelasInput;
+
+            document.getElementById('identity-form').style.display = 'none';
+            document.getElementById('quiz-area').style.display = 'block';
+            
+            initQuiz();
+        }
+
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            studentAnswers = [];
+            currentQuestion = 0;
+            score = 0;
+            
+            quizQuestions.forEach((q, index) => {
+                const qBlock = document.createElement('div');
+                qBlock.className = `question-block`;
+                qBlock.style.display = index === 0 ? 'block' : 'none';
+                qBlock.id = `q-block-${index}`;
+                
+                let optionsHtml = '';
+                q.options.forEach((opt, optIdx) => {
+                    optionsHtml += `<button class="option-btn" onclick="answerQuestion(${index}, ${optIdx}, this)">${opt}</button>`;
+                });
+                
+                qBlock.innerHTML = `
+                    <h3>Pertanyaan ${index + 1} dari ${quizQuestions.length}</h3>
+                    <p style="font-size:1.05rem; font-weight:600; margin-bottom: 15px;">${q.q}</p>
+                    <div>${optionsHtml}</div>
+                    <div id="feedback-${index}" class="quiz-feedback"></div>
+                    <button id="next-btn-${index}" class="btn btn-primary" style="margin-top:15px; display:none;" onclick="nextQuestion()">Lanjut ➡️</button>
+                `;
+                
+                container.appendChild(qBlock);
+            });
+            updateProgress();
+        }
+
+        function answerQuestion(qIndex, selectedOpt, btnElement) {
+            const block = document.getElementById(`q-block-${qIndex}`);
+            const buttons = block.querySelectorAll('.option-btn');
+            buttons.forEach(b => {
+                b.disabled = true;
+                b.style.cursor = 'default';
+            });
+
+            const q = quizQuestions[qIndex];
+            const isCorrect = selectedOpt === q.correct;
+            const charSelected = ["A", "B", "C", "D"][selectedOpt];
+            const charCorrect = ["A", "B", "C", "D"][q.correct];
+
+            studentAnswers.push({
+                questionId: q.id,
+                selected: charSelected,
+                correct: charCorrect,
+                isCorrect: isCorrect
+            });
+
+            btnElement.classList.add(isCorrect ? 'correct' : 'wrong');
+            if(!isCorrect) {
+                buttons[q.correct].classList.add('correct');
+            } else {
+                score += (100 / quizQuestions.length);
+            }
+
+            const fbDiv = document.getElementById(`feedback-${qIndex}`);
+            fbDiv.style.display = 'block';
+            fbDiv.className = `quiz-feedback ${isCorrect ? 'success' : 'error'}`;
+            fbDiv.innerHTML = `<strong>${isCorrect ? 'Benar!' : 'Kurang Tepat.'}</strong> ${q.feedbackText}`;
+
+            const nextBtn = document.getElementById(`next-btn-${qIndex}`);
+            if (qIndex === quizQuestions.length - 1) {
+                nextBtn.innerText = "Selesai & Simpan Hasil 🏆";
+            }
+            nextBtn.style.display = 'inline-flex';
+        }
+
+        function nextQuestion() {
+            document.getElementById(`q-block-${currentQuestion}`).style.display = 'none';
+            currentQuestion++;
+            
+            if (currentQuestion < quizQuestions.length) {
+                document.getElementById(`q-block-${currentQuestion}`).style.display = 'block';
+                updateProgress();
+            } else {
+                showFinalResult();
+            }
+        }
+
+        function updateProgress() {
+            const pct = (currentQuestion / quizQuestions.length) * 100;
+            document.getElementById('quiz-progress').style.width = `${pct}%`;
+        }
+
+        function showFinalResult() {
+            document.getElementById('quiz-area').style.display = 'none';
+            const resultDiv = document.getElementById('quiz-result');
+            resultDiv.style.display = 'block';
+            
+            const finalScore = Math.round(score);
+            document.getElementById('final-score').innerText = finalScore;
+            
+            const msgEl = document.getElementById('score-message');
+            if(finalScore >= 80) {
+                msgEl.innerText = `Luar Biasa, ${studentNama}! Pemahamanmu tentang Elemen Himpunan Data sangat baik!`;
+            } else {
+                msgEl.innerText = `Bagus, ${studentNama}! Terus berlatih agar semakin memahami konsep data terstruktur.`;
+            }
+
+            sendDataToGoogleSheets(finalScore);
+        }
+
+        function sendDataToGoogleSheets(finalScore) {
+            const syncStatus = document.getElementById('sync-status-box');
+            syncStatus.innerHTML = "⏳ Mengirim hasil evaluasi ke Google Sheets Guru...";
+
+            const jumlahBenar = studentAnswers.filter(a => a.isCorrect).length;
+            const jumlahSalah = studentAnswers.length - jumlahBenar;
+
+            const summaryJawaban = studentAnswers.map((a, idx) => `Q${idx+1}:${a.selected}(${a.isCorrect ? 'Benar' : 'Salah'})`).join(", ");
+            const detailAnalisis = `Siswa: ${studentNama} | Benar: ${jumlahBenar}/${studentAnswers.length}`;
+
+            const payload = {
+                action: "submitResult",
+                namaSiswa: studentNama,
+                kelasSiswa: studentKelas,
+                skor: finalScore,
+                jumlahBenar: jumlahBenar,
+                jumlahSalah: jumlahSalah,
+                summaryJawaban: summaryJawaban,
+                detailAnalisis: detailAnalisis
+            };
+
+            const url = getGasURL();
+
+            fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === "success") {
+                    syncStatus.style.background = "#D1FAE5";
+                    syncStatus.style.borderColor = "var(--success)";
+                    syncStatus.style.color = "#065F46";
+                    syncStatus.innerHTML = "✅ <strong>Berhasil Terintegrasi!</strong> Hasil pengerjaan telah tersimpan di Google Sheets Guru.";
+                } else {
+                    throw new Error(data.message || "Gagal menyimpan");
+                }
+            })
+            .catch(err => {
+                console.warn("Sync Notice:", err);
+                syncStatus.style.background = "#FEF3C7";
+                syncStatus.style.borderColor = "var(--primary-dark)";
+                syncStatus.style.color = "#92400E";
+                syncStatus.innerHTML = "⚠️ Data evaluasi tersimpan lokal di browser (Gunakan URL App Script yang valid untuk sinkronisasi Google Sheets).";
+            });
+        }
+
+        function resetQuiz() {
+            document.getElementById('identity-form').style.display = 'block';
+            document.getElementById('quiz-area').style.display = 'none';
+            document.getElementById('quiz-result').style.display = 'none';
+            document.getElementById('student-nama').value = '';
+            document.getElementById('student-kelas').value = '';
+        }
+
+        // Modal Utilities
+        function openConfigModal() {
+            document.getElementById('gas-url-input').value = getGasURL();
+            document.getElementById('config-modal').style.display = 'flex';
+        }
+
+        function closeConfigModal() {
+            document.getElementById('config-modal').style.display = 'none';
+        }
+
+        function saveConfigURL() {
+            const inputUrl = document.getElementById('gas-url-input').value.trim();
+            if(inputUrl) {
+                localStorage.setItem("gas_app_url", inputUrl);
+                document.getElementById('db-status-text').innerText = "URL Custom Apps Script Aktif";
+                showModalAlert("URL Google Apps Script berhasil disimpan!");
+            }
+            closeConfigModal();
+        }
+
+        function showModalAlert(msg) {
+            const alertBox = document.createElement('div');
+            alertBox.style.cssText = "position:fixed; top:20px; right:20px; background:#1F2937; color:#FBBF24; padding:15px 20px; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.3); z-index:200; font-weight:600;";
+            alertBox.innerText = msg;
+            document.body.appendChild(alertBox);
+            setTimeout(() => alertBox.remove(), 3500);
+        }
+
+        // Initialize On Load
+        window.addEventListener('DOMContentLoaded', () => {
+            renderTable(currentData);
+        });
+    </script>
+</body>
+</html>
